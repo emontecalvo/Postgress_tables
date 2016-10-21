@@ -20,13 +20,27 @@ var knex = require('knex')({
 //     });
 
 app.get('/recipes', jsonParser, function(req, res) {
-  
-  var query = knex.select('recipes.name', 'steps.recipes_id', 'tags.recipes_id')
-              .from('recipes')
-              .join('steps.step', 'tags.tag', 'recipes.id')
-              .then(function(rows) {
-                  res.status(200).json(rows);
-            });
+    knex.select('recipes.name', 'steps.step')
+      .from('recipes')
+      .join('steps', 'steps.recipes_id', 'recipes.id')
+      .then(function(rows) {
+        var retuObj = {};
+        for (var i = 0; i < rows.length; i++) {
+          if (retuObj.hasOwnProperty(rows[i].name)) {
+            retuObj[rows[i].name].step.push(rows[i].step);
+          } else {
+            retuObj[rows[i].name] = {
+              name: rows[i].name,
+              //step: rows[i].step.split("'Twas Brillig, and the slithy toves")
+              step: [rows[i].step],
+            };
+          }
+        }
+        console.log(retuObj);
+        res.status(200).json(retuObj);
+      
+    });
+            
 });
 
 
